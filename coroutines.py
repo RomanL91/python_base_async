@@ -126,8 +126,83 @@ def average_1():
     # >>> try:
     # ...     g.throw(StopIteration)            прокидываю исключение
     # ... except StopIteration as e:            отлавливаю его и сохраняю в переменную
-    # ...     print(f'Average {e.value}')       вывожу значение return через атрибут value класса
+    # ...     print(f'Average {e.value}')       вывожу значение return через атрибут value класса StopIteration
     # ... 
     # --->>> StopIteration
     # Average 3.4
     # >>> 
+
+# =======================================================================================
+                    # ==== ДЕЛЕГИРУЮЩИЕ ГЕНЕРАТОРЫ ====
+
+def subgen():
+    for i in 'ABCD':
+        yield i
+
+
+def delegator_gen(subgen):
+    for i in subgen:
+        yield i
+        
+
+# >>> sg = subgen()
+# >>> dg = delegator_gen(sg)
+# >>> next(dg)
+# 'A'
+# >>> next(dg)
+# 'B'
+# >>> next(dg)
+# 'C'
+# >>> next(dg)
+# 'D'
+# >>> next(dg)
+# Traceback (most recent call last):
+#   File "<stdin>", line 1, in <module>
+# StopIteration
+
+# =======================================================================================
+
+# задача пробросить на обработку данные в подгенератор через делегирующий генератор
+# @coroutine                                    yield from сама проинициализирует генератор subgen_1, потому декоратор не нужен
+def subgen_1():
+    while True:
+        try:
+            message = yield
+        except CustomExcept:                    # задача пробросить обьект исключения в подгенератор
+            print('--->>> CustomExcept')
+        else:
+            print(f'---->>> {message}')
+
+@coroutine
+def delegator_gen_1(subgen):
+    while True:
+        try:
+            data = yield
+            subgen.send(data)
+        except CustomExcept as e:               # задача пробросить обьект исключения в подгенератор
+            subgen.throw(e)
+
+
+@coroutine                    
+def delegator_gen_2(subgen):
+    yield from subgen                           # заменили одной строкой конструкцию предыдущего примера delegator_gen_1 
+                                                # делегирующего генератора, в том числе передача аргументов и исключений
+
+# =======================================================================================
+
+def subgen_3():
+    while True:
+        try:
+            message = yield
+        except StopIteration:                    # задача пробросить обьект исключения в подгенератор
+            print('--->>> StopIteration')
+            break
+        else:
+            print(f'---->>> {message}')
+    return '=== RETURN VALUE ==='
+
+
+@coroutine                    
+def delegator_gen_3(subgen):
+    result = yield from subgen                  # await
+    print(f'result --->>> {result}')
