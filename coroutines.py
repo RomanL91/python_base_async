@@ -87,3 +87,47 @@ def average():
         # >>> g.throw(CustomExcept)                 прокидываем исключение
         # --->>> CustomExcept                       типа полезный код
 
+
+# испльзование return в генераторах
+@coroutine
+def average_1():
+    count = 0
+    summ = 0
+    average = None
+
+    while True:
+        try:
+            x = yield average
+        except StopIteration:
+            print('--->>> StopIteration')
+            break
+        except CustomExcept:
+            print('--->>> CustomExcept')
+            break
+        else:
+            count += 1
+            summ += x
+            average = round(summ / count, 2)
+
+    return average
+
+    # >>> g = average_1()
+    # >>> 
+    # >>> g.send(5)
+    # 5.0
+    # >>> g.send(8)
+    # 6.5
+    # >>> g.send(2)
+    # 5.0
+    # >>> g.send(1)
+    # 4.0
+    # >>> g.send(1)
+    # 3.4
+    # >>> try:
+    # ...     g.throw(StopIteration)            прокидываю исключение
+    # ... except StopIteration as e:            отлавливаю его и сохраняю в переменную
+    # ...     print(f'Average {e.value}')       вывожу значение return через атрибут value класса
+    # ... 
+    # --->>> StopIteration
+    # Average 3.4
+    # >>> 
