@@ -7,6 +7,15 @@ class CustomExcept(Exception):
     pass
 
 
+# декоратор для быстрой 
+def coroutine(func):
+    def inner(*args, **kwargs):
+        gen = func(*args, **kwargs)
+        gen.send(None)
+        return gen
+    return inner    
+
+
 def sungen():
     message = yield
     print(f'subgen receive: {message}')
@@ -46,6 +55,7 @@ def sungen_1():
 
 
 # определение среднего арифмитического
+@coroutine
 def average():
     count = 0
     summ = 0
